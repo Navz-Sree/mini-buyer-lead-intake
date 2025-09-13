@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import TopNav from "../components/TopNav";
-import { SessionProvider } from "next-auth/react";
-import { ToastProvider } from "../components/ToastProvider";
-import { ErrorBoundary } from "../components/ErrorBoundary";
+import Providers from "../components/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,16 +32,9 @@ export default function RootLayout({
         <a href="#main-content" className="sr-only focus:not-sr-only absolute top-2 left-2 bg-blue-700 text-white px-3 py-1 rounded z-[1001]">
           Skip to main content
         </a>
-        <SessionProvider>
-          <ToastProvider>
-            <ErrorBoundary>
-              <TopNav />
-              <div id="main-content" style={{ paddingTop: 56 }}>
-                {children}
-              </div>
-            </ErrorBoundary>
-          </ToastProvider>
-        </SessionProvider>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

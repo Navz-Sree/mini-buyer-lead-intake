@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import BuyerForm from "../../../components/BuyerForm";
 import { useSession } from "next-auth/react";
