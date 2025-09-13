@@ -12,7 +12,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { CreateBuyerSchema, type CreateBuyerData } from "@/lib/validations";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, User, Phone, Mail, MapPin, Home, DollarSign, Calendar, Users, CheckCircle, FileText, Edit } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 interface BuyerEditFormProps {
   buyer: any;
@@ -23,6 +24,7 @@ interface BuyerEditFormProps {
 export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: BuyerEditFormProps) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const toast = useToast();
 
   const {
     register,
@@ -80,8 +82,11 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
     try {
       setError(null);
       await onSubmit(data);
+      toast.success("Buyer updated successfully!");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -106,17 +111,17 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Save className="h-5 w-5" />
+    <Card className="w-full max-w-4xl mx-auto bg-white border border-gray-200 shadow-sm">
+      <CardHeader className="bg-gradient-to-r from-green-50 to-green-100 border-b border-green-200">
+        <CardTitle className="flex items-center gap-2 text-green-900">
+          <Edit className="h-5 w-5 text-green-600" />
           Edit Buyer Lead
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-green-700">
           Update the buyer lead information below.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <form onSubmit={handleSubmit(handleFormSubmit as any)} className="space-y-6">
           {error && (
             <Alert variant="destructive">
@@ -125,12 +130,18 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
           )}
 
           {/* Personal Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Personal Information</h3>
+          <div className="space-y-4 md:space-y-6">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+              <User className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name *</Label>
+                <Label htmlFor="fullName" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <User className="h-4 w-4 text-gray-500" />
+                  Full Name *
+                </Label>
                 <Input
                   id="fullName"
                   {...register("fullName")}
@@ -144,7 +155,10 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number *</Label>
+                <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Phone className="h-4 w-4 text-gray-500" />
+                  Phone Number *
+                </Label>
                 <Input
                   id="phone"
                   {...register("phone")}
@@ -157,7 +171,10 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Mail className="h-4 w-4 text-gray-500" />
+                  Email Address
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -171,7 +188,10 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="city">City *</Label>
+                <Label htmlFor="city" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <MapPin className="h-4 w-4 text-gray-500" />
+                  City *
+                </Label>
                 <Select 
                   onValueChange={(value) => setValue("city", value as any)} 
                   disabled={isLoading}
@@ -196,12 +216,18 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
           </div>
 
           {/* Property Requirements */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Property Requirements</h3>
+          <div className="space-y-4 md:space-y-6">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+              <Home className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Property Requirements</h3>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="propertyType">Property Type *</Label>
+                <Label htmlFor="propertyType" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Home className="h-4 w-4 text-gray-500" />
+                  Property Type *
+                </Label>
                 <Select 
                   onValueChange={(value) => setValue("propertyType", value as any)} 
                   disabled={isLoading}
@@ -226,7 +252,10 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
               {/* BHK - Only show for Apartment/Villa */}
               {(propertyType === "APARTMENT" || propertyType === "VILLA") && (
                 <div className="space-y-2">
-                  <Label htmlFor="bhk">BHK *</Label>
+                  <Label htmlFor="bhk" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <Home className="h-4 w-4 text-gray-500" />
+                    BHK *
+                  </Label>
                   <Select 
                     onValueChange={(value) => setValue("bhk", getEnumValue(value, 'bhk') as any)} 
                     disabled={isLoading}
@@ -250,7 +279,10 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="purpose">Purpose *</Label>
+                <Label htmlFor="purpose" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  Purpose *
+                </Label>
                 <Select 
                   onValueChange={(value) => setValue("purpose", value as any)} 
                   disabled={isLoading}
@@ -273,11 +305,16 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
             {/* Budget */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="budgetMin">Minimum Budget (INR)</Label>
+                <Label htmlFor="budgetMin" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  Minimum Budget (INR)
+                </Label>
                 <Input
                   id="budgetMin"
                   type="number"
-                  {...register("budgetMin", { valueAsNumber: true })}
+                  {...register("budgetMin", { 
+                    setValueAs: (value) => value === "" ? undefined : Number(value)
+                  })}
                   placeholder="Enter minimum budget"
                   disabled={isLoading}
                 />
@@ -287,11 +324,16 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="budgetMax">Maximum Budget (INR)</Label>
+                <Label htmlFor="budgetMax" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  Maximum Budget (INR)
+                </Label>
                 <Input
                   id="budgetMax"
                   type="number"
-                  {...register("budgetMax", { valueAsNumber: true })}
+                  {...register("budgetMax", { 
+                    setValueAs: (value) => value === "" ? undefined : Number(value)
+                  })}
                   placeholder="Enter maximum budget"
                   disabled={isLoading}
                 />
@@ -307,11 +349,17 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
 
           {/* Additional Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Additional Information</h3>
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+              <Calendar className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Additional Information</h3>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="timeline">Timeline *</Label>
+                <Label htmlFor="timeline" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  Timeline *
+                </Label>
                 <Select 
                   onValueChange={(value) => setValue("timeline", getEnumValue(value, 'timeline') as any)} 
                   disabled={isLoading}
@@ -333,7 +381,10 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="source">Source *</Label>
+                <Label htmlFor="source" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  Source *
+                </Label>
                 <Select 
                   onValueChange={(value) => setValue("source", getEnumValue(value, 'source') as any)} 
                   disabled={isLoading}
@@ -356,7 +407,10 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="status">Status *</Label>
+                <Label htmlFor="status" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <CheckCircle className="h-4 w-4 text-gray-500" />
+                  Status *
+                </Label>
                 <Select 
                   onValueChange={(value) => setValue("status", value as any)} 
                   disabled={isLoading}
@@ -380,7 +434,10 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <FileText className="h-4 w-4 text-gray-500" />
+                Notes
+              </Label>
               <Textarea
                 id="notes"
                 {...register("notes")}
@@ -395,11 +452,20 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isLoading}
+              className="sm:order-first"
+            >
+              Cancel
+            </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 md:flex-none"
+              className="bg-green-600 hover:bg-green-700 text-white sm:order-last"
             >
               {isLoading ? (
                 <>
@@ -412,14 +478,6 @@ export default function BuyerEditForm({ buyer, onSubmit, isLoading = false }: Bu
                   Update Lead
                 </>
               )}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={isLoading}
-            >
-              Cancel
             </Button>
           </div>
         </form>

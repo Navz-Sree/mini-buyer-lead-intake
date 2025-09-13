@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, CheckCircle } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 interface CSVExportDialogProps {
   currentFilters?: {
@@ -22,6 +23,7 @@ export function CSVExportDialog({ currentFilters }: CSVExportDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [includeFiltered, setIncludeFiltered] = useState(true);
+  const toast = useToast();
   const [selectedFields, setSelectedFields] = useState({
     fullName: true,
     email: true,
@@ -107,10 +109,11 @@ export function CSVExportDialog({ currentFilters }: CSVExportDialogProps) {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
+      toast.success(`Successfully exported ${includeFiltered ? 'filtered ' : ''}buyers to CSV!`);
       setIsOpen(false);
     } catch (error) {
       console.error('Export error:', error);
-      alert('Export failed. Please try again.');
+      toast.error('Export failed. Please try again.');
     } finally {
       setExporting(false);
     }
@@ -135,72 +138,92 @@ export function CSVExportDialog({ currentFilters }: CSVExportDialogProps) {
           Export CSV
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-white">
         <DialogHeader>
-          <DialogTitle>Export Buyers to CSV</DialogTitle>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Download className="h-5 w-5 text-green-600" />
+            Export Buyers to CSV
+          </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
           {/* Export Options */}
-          <Card>
+          <Card className="bg-green-50 border-green-200">
             <CardHeader>
-              <CardTitle className="text-lg">Export Options</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5 text-green-600" />
+                Export Options
+              </CardTitle>
+              <CardDescription className="text-green-700">
                 Choose what data to include in your export.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Filter Option */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-start space-x-3 p-3 bg-white rounded-lg border border-green-200">
                 <Checkbox
                   id="includeFiltered"
                   checked={includeFiltered}
                   onCheckedChange={(checked) => setIncludeFiltered(checked === true)}
+                  className="mt-0.5"
                 />
-                <Label htmlFor="includeFiltered" className="text-sm">
-                  Export only filtered results
-                  {hasActiveFilters ? (
-                    <span className="text-blue-600 ml-1">(filters active)</span>
-                  ) : (
-                    <span className="text-gray-500 ml-1">(no filters active - will export all)</span>
-                  )}
-                </Label>
+                <div className="flex-1">
+                  <Label htmlFor="includeFiltered" className="text-sm font-medium text-gray-900 cursor-pointer">
+                    Export only filtered results
+                  </Label>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {hasActiveFilters ? (
+                      <span className="text-green-600 font-medium">✓ Filters are active - will export filtered data</span>
+                    ) : (
+                      <span className="text-gray-500">No filters active - will export all records</span>
+                    )}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Field Selection */}
-          <Card>
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-lg">Select Fields</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-gray-700" />
+                Select Fields
+              </CardTitle>
               <CardDescription>
-                Choose which fields to include in the export. ({selectedFieldCount} selected)
+                Choose which fields to include in the export. ({selectedFieldCount} of {Object.keys(selectedFields).length} selected)
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {/* Select All/None */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 p-3 bg-gray-50 rounded-lg">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => toggleAllFields(true)}
+                    className="bg-white border-gray-300"
                   >
+                    <CheckCircle className="h-3 w-3 mr-1" />
                     Select All
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => toggleAllFields(false)}
+                    className="bg-white border-gray-300"
                   >
                     Select None
                   </Button>
+                  <div className="ml-auto text-xs text-gray-600 flex items-center">
+                    {selectedFieldCount} of {Object.keys(selectedFields).length} fields selected
+                  </div>
                 </div>
 
                 {/* Field Checkboxes */}
                 <div className="grid grid-cols-2 gap-3">
                   {Object.entries(fieldLabels).map(([field, label]) => (
-                    <div key={field} className="flex items-center space-x-2">
+                    <div key={field} className="flex items-center space-x-3 p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                       <Checkbox
                         id={field}
                         checked={selectedFields[field as keyof typeof selectedFields]}
@@ -211,7 +234,7 @@ export function CSVExportDialog({ currentFilters }: CSVExportDialogProps) {
                           }))
                         }
                       />
-                      <Label htmlFor={field} className="text-sm">
+                      <Label htmlFor={field} className="text-sm font-medium text-gray-900 cursor-pointer flex-1">
                         {label}
                       </Label>
                     </div>
@@ -222,26 +245,32 @@ export function CSVExportDialog({ currentFilters }: CSVExportDialogProps) {
           </Card>
         </div>
 
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleExport} 
-            disabled={exporting || selectedFieldCount === 0}
-          >
-            {exporting ? (
-              <>
-                <Download className="h-4 w-4 mr-2 animate-spin" />
-                Exporting...
-              </>
-            ) : (
-              <>
-                <FileText className="h-4 w-4 mr-2" />
-                Export CSV
-              </>
-            )}
-          </Button>
+        <div className="flex justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-200">
+          <div className="text-sm text-gray-600">
+            Ready to export {selectedFieldCount} fields
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsOpen(false)} className="bg-white border-gray-300">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleExport} 
+              disabled={exporting || selectedFieldCount === 0}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              {exporting ? (
+                <>
+                  <Download className="h-4 w-4 mr-2 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

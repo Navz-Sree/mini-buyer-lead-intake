@@ -139,7 +139,11 @@ export async function getBuyers(filters: BuyerFilters): Promise<PaginatedBuyers>
   if (city) where.city = city as any;
   if (propertyType) where.propertyType = propertyType as any;
   if (status) where.status = status as any;
-  // Removed timeline filter
+  
+  // Add timeline filtering using possessionTimeline field
+  if ((filters as any).timeline) {
+    where.possessionTimeline = (filters as any).timeline as any;
+  }
 
   if (search) {
     where.OR = [

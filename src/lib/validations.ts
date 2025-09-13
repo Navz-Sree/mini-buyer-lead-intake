@@ -196,6 +196,7 @@ export const BuyerFilterSchema = z.object({
   status: StatusEnum.optional(),
   priority: PriorityEnum.optional(),
   leadSource: LeadSourceEnum.optional(),
+  timeline: PossessionTimelineEnum.optional(),
   budgetMin: z.number().optional(),
   budgetMax: z.number().optional(),
   page: z.number().int().min(1).default(1),

@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, FileText, AlertCircle, CheckCircle, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/toast";
 
 interface ImportResult {
   success: number;
@@ -21,14 +22,16 @@ export function CSVImportDialog() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile && selectedFile.type === 'text/csv') {
       setFile(selectedFile);
       setResult(null);
+      toast.info(`Selected file: ${selectedFile.name}`);
     } else {
-      alert('Please select a valid CSV file.');
+      toast.error('Please select a valid CSV file.');
     }
   };
 
@@ -54,6 +57,22 @@ export function CSVImportDialog() {
       const importResult = await response.json();
       setResult(importResult);
       
+      if (importResult.success > 0) {
+        toast.success(`Successfully imported ${importResult.success} buyers!`, {
+          action: {
+            label: 'View Buyers',
+            onClick: () => {
+              setIsOpen(false);
+              window.location.reload();
+            }
+          }
+        });
+      }
+      
+      if (importResult.errors.length > 0) {
+        toast.warning(`${importResult.errors.length} rows had errors. Check the results below.`);
+      }
+      
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -62,16 +81,16 @@ export function CSVImportDialog() {
 
     } catch (error) {
       console.error('Import error:', error);
-      alert('Import failed. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Import failed. Please try again.');
     } finally {
       setImporting(false);
     }
   };
 
   const downloadTemplate = () => {
-    const csvContent = `fullName,email,phone,city,propertyType,bhk,purpose,budgetMin,budgetMax,possessionTimeline,specificRequirements,leadSource,notes
-John Doe,john@example.com,9876543210,Chandigarh,Apartment,Two,Buy,5000000,7000000,WITHIN_3_MONTHS,Near metro station,WEBSITE,Looking for 2BHK apartment
-Jane Smith,jane@example.com,9876543211,Mohali,Villa,Three,Buy,8000000,12000000,WITHIN_6_MONTHS,With garden,REFERRAL,Interested in independent villa`;
+    const csvContent = `Full Name,Email,Phone,City,Property Type,BHK,Budget Min,Budget Max,Timeline,Requirements,Lead Source,Status,Notes
+John Doe,john@example.com,9876543210,Chandigarh,Apartment,2 BHK,5000000,7000000,0-3 months,Near metro station,Website,New,Looking for 2BHK apartment
+Jane Smith,jane@example.com,9876543211,Mohali,Villa,3 BHK,8000000,12000000,3-6 months,With garden,Referral,New,Interested in independent villa`;
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -82,6 +101,8 @@ Jane Smith,jane@example.com,9876543211,Mohali,Villa,Three,Buy,8000000,12000000,W
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    
+    toast.success('Template downloaded successfully!');
   };
 
   return (
@@ -92,22 +113,28 @@ Jane Smith,jane@example.com,9876543211,Mohali,Villa,Three,Buy,8000000,12000000,W
           Import CSV
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-white">
         <DialogHeader>
-          <DialogTitle>Import Buyers from CSV</DialogTitle>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Upload className="h-5 w-5 text-blue-600" />
+            Import Buyers from CSV
+          </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Template Download */}
-          <Card>
+          <Card className="bg-blue-50 border-blue-200">
             <CardHeader>
-              <CardTitle className="text-lg">Step 1: Download Template</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                Step 1: Download Template
+              </CardTitle>
+              <CardDescription className="text-blue-700">
                 Download the CSV template to ensure your data is in the correct format.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={downloadTemplate} variant="outline">
+              <Button onClick={downloadTemplate} variant="outline" className="bg-white border-blue-300 text-blue-700 hover:bg-blue-50">
                 <FileText className="h-4 w-4 mr-2" />
                 Download Template
               </Button>
@@ -115,9 +142,12 @@ Jane Smith,jane@example.com,9876543211,Mohali,Villa,Three,Buy,8000000,12000000,W
           </Card>
 
           {/* File Upload */}
-          <Card>
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-lg">Step 2: Upload CSV File</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Upload className="h-5 w-5 text-gray-700" />
+                Step 2: Upload CSV File
+              </CardTitle>
               <CardDescription>
                 Select your CSV file containing buyer data to import.
               </CardDescription>
@@ -125,22 +155,23 @@ Jane Smith,jane@example.com,9876543211,Mohali,Villa,Three,Buy,8000000,12000000,W
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="csvFile">CSV File</Label>
+                  <Label htmlFor="csvFile" className="text-sm font-medium text-gray-900">CSV File</Label>
                   <Input
                     ref={fileInputRef}
                     id="csvFile"
                     type="file"
                     accept=".csv"
                     onChange={handleFileSelect}
-                    className="mt-1"
+                    className="mt-2 border-gray-300 focus:border-blue-600 focus:ring-blue-600"
                   />
+                  <p className="mt-1 text-xs text-gray-500">Max file size: 5MB. Supported format: CSV</p>
                 </div>
                 
                 {file && (
-                  <Alert>
-                    <FileText className="h-4 w-4" />
-                    <AlertDescription>
-                      Selected file: {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                  <Alert className="bg-green-50 border-green-200">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">
+                      <span className="font-medium">File selected:</span> {file.name} ({(file.size / 1024).toFixed(1)} KB)
                     </AlertDescription>
                   </Alert>
                 )}

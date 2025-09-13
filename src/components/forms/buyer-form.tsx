@@ -12,7 +12,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { CreateBuyerSchema, type CreateBuyerData } from "@/lib/validations";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, User, Phone, Mail, MapPin, Home, DollarSign, Calendar, Users, Target, FileText } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 interface BuyerFormProps {
   onSubmit: (data: CreateBuyerData) => Promise<void>;
@@ -23,6 +24,7 @@ interface BuyerFormProps {
 export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerFormProps) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const toast = useToast();
 
   const {
     register,
@@ -45,15 +47,16 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
   const budgetMax = watch("budgetMax");
 
   const handleFormSubmit = async (data: any) => {
-    console.log("Form submitted with data:", data);
-    console.log("Form errors:", errors);
     try {
       setError(null);
       await onSubmit(data);
       reset();
+      toast.success("Buyer created successfully!");
     } catch (err) {
       console.error("Form submission error:", err);
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -68,17 +71,17 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="h-5 w-5" />
+    <Card className="w-full max-w-4xl mx-auto bg-white border border-gray-200 shadow-sm">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
+        <CardTitle className="flex items-center gap-2 text-blue-900">
+          <Plus className="h-5 w-5 text-blue-600" />
           Create New Buyer Lead
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-blue-700">
           Fill in the details below to create a new buyer lead in the system.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <form onSubmit={handleSubmit(handleFormSubmit as any)} className="space-y-6">
           {error && (
             <Alert variant="destructive">
@@ -97,18 +100,25 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
           )}
 
           {/* Personal Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Personal Information</h3>
+          <div className="space-y-4 md:space-y-6">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+              <User className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name *</Label>
+                <Label htmlFor="fullName" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <User className="h-4 w-4 text-gray-500" />
+                  Full Name *
+                </Label>
                 <Input
                   id="fullName"
                   {...register("fullName")}
                   placeholder="Enter full name"
                   disabled={isLoading}
                   onFocus={() => clearErrors("fullName")}
+                  className="bg-white border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
                 {errors.fullName && (
                   <p className="text-sm text-red-600">{(errors.fullName as any)?.message}</p>
@@ -116,13 +126,17 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number *</Label>
+                <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Phone className="h-4 w-4 text-gray-500" />
+                  Phone Number *
+                </Label>
                 <Input
                   id="phone"
                   {...register("phone")}
                   placeholder="Enter phone number"
                   disabled={isLoading}
                   onFocus={() => clearErrors("phone")}
+                  className="bg-white border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
                 {errors.phone && (
                   <p className="text-sm text-red-600">{(errors.phone as any)?.message}</p>
@@ -130,7 +144,10 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Mail className="h-4 w-4 text-gray-500" />
+                  Email Address
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -138,6 +155,7 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
                   placeholder="Enter email address (optional)"
                   disabled={isLoading}
                   onFocus={() => clearErrors("email")}
+                  className="bg-white border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
                 {errors.email && (
                   <p className="text-sm text-red-600">{(errors.email as any)?.message}</p>
@@ -145,7 +163,10 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="city">City *</Label>
+                <Label htmlFor="city" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <MapPin className="h-4 w-4 text-gray-500" />
+                  City *
+                </Label>
                 <Select 
                   onValueChange={(value) => {
                     setValue("city", value as any);
@@ -173,12 +194,18 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
           </div>
 
           {/* Property Requirements */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Property Requirements</h3>
+          <div className="space-y-4 md:space-y-6">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+              <Home className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Property Requirements</h3>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="propertyType">Property Type *</Label>
+                <Label htmlFor="propertyType" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Home className="h-4 w-4 text-gray-500" />
+                  Property Type *
+                </Label>
                 <Select 
                   onValueChange={(value) => {
                     setValue("propertyType", value as any);
@@ -233,7 +260,10 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="purpose">Purpose *</Label>
+                <Label htmlFor="purpose" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Target className="h-4 w-4 text-gray-500" />
+                  Purpose *
+                </Label>
                 <Select 
                   onValueChange={(value) => {
                     setValue("purpose", value as any);
@@ -259,11 +289,16 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
             {/* Budget */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="budgetMin">Minimum Budget (INR)</Label>
+                <Label htmlFor="budgetMin" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  Minimum Budget (INR)
+                </Label>
                 <Input
                   id="budgetMin"
                   type="number"
-                  {...register("budgetMin", { valueAsNumber: true })}
+                  {...register("budgetMin", { 
+                    setValueAs: (value) => value === "" ? undefined : Number(value)
+                  })}
                   placeholder="Enter minimum budget"
                   disabled={isLoading}
                   onFocus={() => clearErrors("budgetMin")}
@@ -274,11 +309,16 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="budgetMax">Maximum Budget (INR)</Label>
+                <Label htmlFor="budgetMax" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  Maximum Budget (INR)
+                </Label>
                 <Input
                   id="budgetMax"
                   type="number"
-                  {...register("budgetMax", { valueAsNumber: true })}
+                  {...register("budgetMax", { 
+                    setValueAs: (value) => value === "" ? undefined : Number(value)
+                  })}
                   placeholder="Enter maximum budget"
                   disabled={isLoading}
                   onFocus={() => clearErrors("budgetMax")}
@@ -294,12 +334,18 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
           </div>
 
           {/* Additional Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Additional Information</h3>
+          <div className="space-y-4 md:space-y-6">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+              <Calendar className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Additional Information</h3>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="timeline">Timeline *</Label>
+                <Label htmlFor="timeline" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  Timeline *
+                </Label>
                 <Select 
                   onValueChange={(value) => {
                     setValue("possessionTimeline", getEnumValue(value, 'timeline') as any);
@@ -324,7 +370,10 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="source">Source *</Label>
+                <Label htmlFor="source" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  Source *
+                </Label>
                 <Select 
                   onValueChange={(value) => {
                     setValue("leadSource", getEnumValue(value, 'source') as any);
@@ -351,7 +400,10 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <MapPin className="h-4 w-4 text-gray-500" />
+                Notes
+              </Label>
               <Textarea
                 id="notes"
                 {...register("notes")}
@@ -367,11 +419,20 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isLoading}
+              className="sm:order-first"
+            >
+              Cancel
+            </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 md:flex-none"
+              className="bg-blue-600 hover:bg-blue-700 text-white sm:order-last"
             >
               {isLoading ? (
                 <>
@@ -384,14 +445,6 @@ export function BuyerForm({ onSubmit, isLoading = false, defaultValues }: BuyerF
                   Create Lead
                 </>
               )}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={isLoading}
-            >
-              Cancel
             </Button>
           </div>
         </form>

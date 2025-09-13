@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getBuyerById, updateBuyer } from '@/lib/db'
+import { getBuyerById, updateBuyer, deleteBuyer } from '@/lib/db'
 import { CreateBuyerSchema } from '@/lib/validations'
 
 export async function GET(
@@ -10,11 +10,11 @@ export async function GET(
   try {
     const { id } = await params
     const session = await auth()
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const buyer = await getBuyerById(id, session.user.email)
+    const buyer = await getBuyerById(id, session.user.id)
     if (!buyer) {
       return NextResponse.json({ error: 'Buyer not found' }, { status: 404 })
     }
@@ -36,7 +36,7 @@ export async function PUT(
   try {
     const { id } = await params
     const session = await auth()
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -46,8 +46,8 @@ export async function PUT(
     // Validate the data
     const validatedData = CreateBuyerSchema.parse(data)
 
-    // Get the current buyer to check ownership and get user ID
-    const currentBuyer = await getBuyerById(id, session.user.email)
+    // Get the current buyer to check ownership
+    const currentBuyer = await getBuyerById(id, session.user.id)
     if (!currentBuyer) {
       return NextResponse.json({ error: 'Buyer not found' }, { status: 404 })
     }
@@ -63,7 +63,7 @@ export async function PUT(
     const updatedBuyer = await updateBuyer(
       id,
       validatedData,
-      currentBuyer.ownerId,
+      session.user.id, // Use session.user.id instead of currentBuyer.ownerId
       new Date(updatedAt)
     )
 
@@ -99,12 +99,12 @@ export async function DELETE(
   try {
     const { id } = await params
     const session = await auth()
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get the current buyer to check ownership
-    const currentBuyer = await getBuyerById(id, session.user.email)
+    const currentBuyer = await getBuyerById(id, session.user.id)
     if (!currentBuyer) {
       return NextResponse.json({ error: 'Buyer not found' }, { status: 404 })
     }
@@ -116,11 +116,19 @@ export async function DELETE(
       )
     }
 
-    // TODO: Implement soft delete or actual delete
-    // For now, we'll just return success
+    // Delete the buyer
+    await deleteBuyer(id, session.user.id)
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting buyer:', error)
+    
+    if (error.message?.includes('Unauthorized')) {
+      return NextResponse.json(
+        { error: 'You can only delete your own leads' },
+        { status: 403 }
+      )
+    }
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
