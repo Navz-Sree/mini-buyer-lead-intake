@@ -1,7 +1,7 @@
 
 ## Setup
 
-   DEPLOYMENT= https://mini-buyer-lead-intake-bksuca5wo.vercel.app
+   DEPLOYMENT= mini-buyer-lead-intake.vercel.app
 
 1. **Clone the repo & install dependencies:**
 	```bash
